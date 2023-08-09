@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cryptocurrency Price Tracker</title>
+    <style>
+        /* Your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        /* ... (rest of your styles) ... */
+        /* Your CSS styles here */
+        #header {
+            background-color: #2f1273;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        #home-button {
+            text-align: center;
+            margin-top: 1nprem;
+        }
+
+        #home-button a {
+            text-decoration: none;
+            color: #2f1273;
+            font-weight: bold;
+            border: 2px solid #2f1273;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+ 
+        #container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        #chart-controls {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 0.5rem;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #chart-container {
+            margin-bottom: 2rem;
+        }
+
+        #footer {
+            background-color: #2f1273;
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+            position: absolute;
+            bottom: 30;
+            width: 100%;
+        }
+
+        /* Add a bit of space above the footer */
+        #container {
+            margin-bottom: 3rem;
+        }
+
+        
+    </style>
+</head>
+<body>
+    
+
+    <div id="header">
+        <h1>Cryptocurrency Price Tracker</h1>
+        <form id="search-form" action="/search" method="get">
+            <input type="text" id="search-input" name="symbol" placeholder="Enter Symbol (e.g., BTC)">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div id="home-button">
+        <a href="/">Home</a>
+    </div>
+    
+    
+    <div id="container">
+        <div id="chart-controls">
+            <label for="date-filter">Select Date Range:</label>
+            <select id="date-filter">
+                <option value="1">Last 1 Day</option>
+                <option value="2">Last 2 Days</option>
+                <option value="3">Last 3 Days</option>
+                <option value="4">Last 4 Days</option>
+                <option value="5">Last 5 Days</option>
+                <option value="6">Last 6 Days</option>
+            </select>
+        </div>
+
+        <div id="chart-container">
+            <canvas id="price-chart"></canvas>
+        </div>
+
+        <div>
+            <h2>Latest Price Data:</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Symbol</th>
+                        <th>Price (USD)</th>
+                    </tr>
+                </thead>
+                <tbody id="price-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+
+    <div id="footer">
+        <p>&copy; 2023 Cryptocurrency Price Tracker. All rights reserved.</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Fetch cryptocurrency data from Flask endpoint and create the chart
+        // ... (your script code) ...
+        fetch('/get_prices')
+            .then(response => response.json())
+            .then(data => {
+                // Initial data for all days
+                let filteredData = data;
+
+                const labels = filteredData.map(item => item.symbol);
+                const prices = filteredData.map(item => item.price);
+
+                const ctx = document.getElementById('price-chart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cryptocurrency Price',
+                            data: prices,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+
+                // Handle date filter changes
+                const dateFilter = document.getElementById('date-filter');
+                dateFilter.addEventListener('change', function () {
+                    const days = parseInt(this.value);
+                    filteredData = data.slice(-days);
+
+                    // Update chart data
+                    chart.data.labels = filteredData.map(item => item.symbol);
+                    chart.data.datasets[0].data = filteredData.map(item => item.price);
+                    chart.update();
+                });
+
+                // Populate the price table
+                const priceTable = document.getElementById('price-table');
+                filteredData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.timestamp}</td>
+                        <td>${item.symbol}</td>
+                        <td>${item.price}</td>
+                    `;
+                    priceTable.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    </script>
+        
+
+</body>
+</html>
